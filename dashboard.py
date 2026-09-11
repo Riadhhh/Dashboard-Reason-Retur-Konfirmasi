@@ -33,42 +33,36 @@ if "customer_composition_df" not in st.session_state:
 detail_page = st.Page(
     "pages/detail_data.py",
     title="Detail Data",
-    icon="📋",
     url_path="detail-data",
 )
 
 overview_page = st.Page(
     "pages/overview.py",
     title="Overview",
-    icon="📊",
     url_path="overview",
 )
 
 reason_page = st.Page(
     "pages/gagal_kirim.py",
     title="Alasan Retur",
-    icon="⚠️",
     url_path="alasan-gagal-kirim",
 )
 
 depo_page = st.Page(
     "pages/depo.py",
     title="Analisis Depo",
-    icon="🏢",
     url_path="analisis-depo",
 )
 
 driver_sales_page = st.Page(
     "pages/driver_sales.py",
     title="Driver & Sales",
-    icon="🚚",
     url_path="driver-sales",
 )
 
 customer_page = st.Page(
     "pages/customer.py",
     title="Customer",
-    icon="👥",
     url_path="customer",
 )
 
@@ -239,32 +233,32 @@ with st.sidebar:
 
     st.page_link(
         detail_page,
-        label="Detail Data",
+        label="📋 Detail Data",
     )
 
     st.page_link(
         overview_page,
-        label="Overview",
+        label="📊 Overview",
     )
 
     st.page_link(
         reason_page,
-        label="Alasan Retur",
+        label="⚠️ Alasan Retur",
     )
 
     st.page_link(
         depo_page,
-        label="Analisis Depo",
+        label="🏢 Analisis Depo",
     )
 
     st.page_link(
         driver_sales_page,
-        label="Driver & Sales",
+        label="🚚 Driver & Sales",
     )
 
     st.page_link(
         customer_page,
-        label="Customer",
+        label="👥 Customer",
     )
 
 
