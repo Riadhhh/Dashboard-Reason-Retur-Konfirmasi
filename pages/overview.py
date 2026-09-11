@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 
 
 PLOTLY_CONFIG = {
@@ -23,6 +22,25 @@ def format_currency(value):
 
 def format_percentage(value):
     return f"{value:.2f}%"
+
+
+def format_currency_compact(value):
+
+    value = float(value)
+
+    if abs(value) >= 1_000_000_000_000:
+        return f"Rp {value / 1_000_000_000_000:.2f} triliun"
+
+    if abs(value) >= 1_000_000_000:
+        return f"Rp {value / 1_000_000_000:.2f} miliar"
+
+    if abs(value) >= 1_000_000:
+        return f"Rp {value / 1_000_000:.2f} juta"
+
+    if abs(value) >= 1_000:
+        return f"Rp {value / 1_000:.2f} ribu"
+
+    return f"Rp {value:,.0f}".replace(",", ".")
 
 
 # MENENTUKAN ARAH URUTAN
@@ -253,10 +271,7 @@ def show_reason_summary(df):
         "berdasarkan parameter dan urutan nilai yang dipilih."
     )
 
-    col1, col2 = st.columns(
-        2,
-        gap="medium",
-    )
+    col1 = st.columns(1)[0]
 
     with col1:
 
@@ -268,20 +283,6 @@ def show_reason_summary(df):
                 "Nominal Retur",
             ],
             key="overview_reason_parameter",
-        )
-
-    with col2:
-
-        sort_label = (
-            "Terendah"
-            if get_sort_ascending()
-            else "Tertinggi"
-        )
-
-        st.text_input(
-            "Urutan Nilai",
-            value=sort_label,
-            disabled=True,
         )
 
     if parameter == "Jumlah Transaksi":
@@ -394,6 +395,347 @@ def show_reason_summary(df):
         )
 
     st.divider()
+
+
+# PERBANDINGAN DEPO
+
+def prepare_depo_comparison_data(df):
+
+    if df.empty or "Nama Depo" not in df.columns:
+
+        return pd.DataFrame()
+
+    data = df.copy()
+
+    data["Nama Depo"] = (
+        data["Nama Depo"]
+        .fillna("Tidak Diketahui")
+        .astype(str)
+        .str.strip()
+    )
+
+    data.loc[
+        data["Nama Depo"] == "",
+        "Nama Depo",
+    ] = "Tidak Diketahui"
+
+    data["Kuantiti Alasan"] = pd.to_numeric(
+        data["Kuantiti Alasan"],
+        errors="coerce",
+    ).fillna(0)
+
+    data["nilai"] = pd.to_numeric(
+        data["nilai"],
+        errors="coerce",
+    ).fillna(0)
+
+    depo_df = (
+        data
+        .groupby("Nama Depo")
+        .agg(
+            transaksi=(
+                "Nama Depo",
+                "size",
+            ),
+            retur=(
+                "Kuantiti Alasan",
+                "sum",
+            ),
+            nominal=(
+                "nilai",
+                "sum",
+            ),
+        )
+        .reset_index()
+    )
+
+    return depo_df
+
+
+# BAR CHART PERBANDINGAN DEPO
+
+def create_depo_comparison_bar(
+    depo_df,
+    parameter,
+):
+
+    if depo_df.empty:
+
+        st.info(
+            "Data depo tidak tersedia."
+        )
+
+        return
+
+    ascending = get_sort_ascending()
+
+    if parameter == "Jumlah Transaksi":
+
+        metric_column = "transaksi"
+        x_title = "Jumlah Transaksi"
+
+        hover_template = (
+            "<b>%{y}</b><br>"
+            "Jumlah Transaksi: %{x:,.0f}"
+            "<extra></extra>"
+        )
+
+    elif parameter == "Jumlah Barang Retur":
+
+        metric_column = "retur"
+        x_title = "Jumlah Barang Retur"
+
+        hover_template = (
+            "<b>%{y}</b><br>"
+            "Jumlah Barang Retur: %{x:,.0f}"
+            "<extra></extra>"
+        )
+
+    else:
+
+        metric_column = "nominal"
+        x_title = "Nominal Retur"
+
+        hover_template = (
+            "<b>%{y}</b><br>"
+            "Nominal Retur: Rp %{x:,.0f}"
+            "<extra></extra>"
+        )
+
+    chart_df = (
+        depo_df
+        .sort_values(
+            metric_column,
+            ascending=ascending,
+        )
+        .copy()
+    )
+
+    fig = px.bar(
+        chart_df,
+        x=metric_column,
+        y="Nama Depo",
+        orientation="h",
+        text=metric_column,
+    )
+
+    if parameter == "Nominal Retur":
+
+        fig.update_traces(
+            texttemplate="Rp %{text:,.0f}",
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate=hover_template,
+        )
+
+    else:
+
+        fig.update_traces(
+            texttemplate="%{text:,.0f}",
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate=hover_template,
+        )
+
+    sort_label = (
+        "Terendah"
+        if ascending
+        else "Tertinggi"
+    )
+
+    fig.update_layout(
+        title=dict(
+            text=f"Perbandingan Depo Berdasarkan "
+            f"{parameter}",
+            font=dict(size=20),
+        ),
+        height=450,
+        margin=dict(
+            t=70,
+            b=50,
+            l=30,
+            r=30,
+        ),
+        xaxis=dict(
+            title=x_title,
+            separatethousands=True,
+        ),
+        yaxis=dict(
+            title="Nama Depo",
+            categoryorder="array",
+            categoryarray=chart_df["Nama Depo"].tolist(),
+            autorange="reversed",
+        ),
+        showlegend=False,
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=PLOTLY_CONFIG,
+    )
+
+
+# DONAT PERSENTASE KONTRIBUSI DEPO
+
+def create_depo_comparison_donut(
+    depo_df,
+    parameter,
+):
+
+    if depo_df.empty:
+
+        st.info(
+            "Data depo tidak tersedia."
+        )
+
+        return
+
+    if parameter == "Jumlah Transaksi":
+
+        metric_column = "transaksi"
+        label_metric = "Jumlah Transaksi"
+
+    elif parameter == "Jumlah Barang Retur":
+
+        metric_column = "retur"
+        label_metric = "Jumlah Barang Retur"
+
+    else:
+
+        metric_column = "nominal"
+        label_metric = "Nominal Retur"
+
+    donut_df = depo_df[
+        [
+            "Nama Depo",
+            metric_column,
+        ]
+    ].copy()
+
+    total_value = donut_df[
+        metric_column
+    ].sum()
+
+    if total_value <= 0:
+
+        st.info(
+            "Tidak terdapat nilai yang dapat "
+            "digunakan untuk menghitung persentase."
+        )
+
+        return
+
+    donut_df["Persentase"] = (
+        donut_df[metric_column]
+        / total_value
+        * 100
+    )
+
+    ascending = get_sort_ascending()
+
+    donut_df = donut_df.sort_values(
+        metric_column,
+        ascending=ascending,
+    )
+
+    fig = px.pie(
+        donut_df,
+        names="Nama Depo",
+        values=metric_column,
+        hole=0.55,
+    )
+
+    fig.update_traces(
+        textposition="inside",
+        texttemplate="%{percent:.1%}",
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            f"{label_metric}: "
+            "%{value:,.0f}<br>"
+            "Persentase: %{percent:.2%}"
+            "<extra></extra>"
+        ),
+    )
+
+    fig.update_layout(
+        title=dict(
+            text=f"Persentase Kontribusi Depo",
+            font=dict(size=20),
+        ),
+        height=450,
+        margin=dict(
+            t=70,
+            b=20,
+            l=20,
+            r=20,
+        ),
+        legend=dict(
+            title="Nama Depo",
+        ),
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=PLOTLY_CONFIG,
+    )
+
+
+# PERBANDINGAN SETIAP DEPO
+
+def show_depo_comparison(df):
+
+    depo_df = prepare_depo_comparison_data(
+        df
+    )
+
+    if depo_df.empty:
+
+        return
+
+    st.subheader(
+        "Perbandingan Setiap Depo"
+    )
+
+    st.caption(
+        "Membandingkan kontribusi setiap depo berdasarkan "
+        "parameter yang dipilih."
+    )
+
+    parameter = st.selectbox(
+        "Parameter Perbandingan",
+        [
+            "Jumlah Transaksi",
+            "Jumlah Barang Retur",
+            "Nominal Retur",
+        ],
+        key="overview_depo_parameter",
+    )
+
+    st.divider()
+
+    col1, col2 = st.columns(
+        2,
+        gap="large",
+    )
+
+    with col1:
+
+        create_depo_comparison_bar(
+            depo_df,
+            parameter,
+        )
+
+    with col2:
+
+        create_depo_comparison_donut(
+            depo_df,
+            parameter,
+        )
+
+    st.divider()
+
 
 # RINGKASAN KONDISI DATA
 
@@ -769,7 +1111,13 @@ def show_overview(df):
 
     st.divider()
 
-    # ANALISIS ALASAN Retur
+    # PERBANDINGAN DEPO
+
+    show_depo_comparison(
+        data
+    )
+
+    # ANALISIS ALASAN RETUR
 
     show_reason_summary(
         data

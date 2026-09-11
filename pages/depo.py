@@ -81,7 +81,10 @@ def show_depo_kpis(df_depo):
         else 0
     )
 
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5 = st.columns(
+        5,
+        gap="medium",
+    )
 
     with col1:
 
@@ -322,7 +325,7 @@ def create_depo_trend(df_depo, parameter):
     )
 
 
-# DISTRIBUSI ALASAN Retur
+# DISTRIBUSI ALASAN RETUR
 
 def create_depo_reason_chart(
     df_depo,
@@ -358,8 +361,6 @@ def create_depo_reason_chart(
         )
 
         return
-
-    # Menentukan arah urutan
 
     ascending = get_sort_ascending()
 
@@ -435,8 +436,6 @@ def create_depo_reason_chart(
             "<extra></extra>"
         )
 
-    # Mengambil data berdasarkan urutan analisis
-
     grouped = (
         grouped
         .sort_values(
@@ -497,8 +496,6 @@ def create_depo_customer_chart(
         return
 
     customer_column = "Nama Customer"
-
-    # Menentukan arah urutan
 
     ascending = get_sort_ascending()
 
@@ -578,8 +575,6 @@ def create_depo_customer_chart(
         subset=[customer_column]
     )
 
-    # Mengambil data berdasarkan urutan analisis
-
     grouped = (
         grouped
         .sort_values(
@@ -640,8 +635,6 @@ def create_depo_driver_chart(
         return
 
     driver_column = "Nama Driver"
-
-    # Menentukan arah urutan
 
     ascending = get_sort_ascending()
 
@@ -720,8 +713,6 @@ def create_depo_driver_chart(
     grouped = grouped.dropna(
         subset=[driver_column]
     )
-
-    # Mengambil data berdasarkan urutan analisis
 
     grouped = (
         grouped
@@ -831,7 +822,9 @@ def show_depo(df):
         f"Ringkasan Depo: {selected_depo}"
     )
 
-    show_depo_kpis(df_depo)
+    show_depo_kpis(
+        df_depo
+    )
 
     st.divider()
 
@@ -845,6 +838,17 @@ def show_depo(df):
 
     st.divider()
 
+    # PARAMETER ANALISIS
+
+    st.subheader(
+        "Parameter Analisis"
+    )
+
+    st.caption(
+        "Pilih parameter yang digunakan untuk "
+        "menganalisis tren dan distribusi retur."
+    )
+
     parameter = st.selectbox(
         "Jenis Parameter",
         [
@@ -854,6 +858,10 @@ def show_depo(df):
         ],
         key="depo_parameter",
     )
+
+    st.divider()
+
+    # TREN RETUR
 
     st.subheader(
         "Tren Retur Berdasarkan Waktu"
@@ -871,12 +879,14 @@ def show_depo(df):
 
     st.divider()
 
+    # DISTRIBUSI RETUR
+
     st.subheader(
         "Distribusi Retur"
     )
 
     st.caption(
-        "Menampilkan Retur yang paling dominan "
+        "Menampilkan retur yang paling dominan "
         "berdasarkan parameter yang dipilih."
     )
 
@@ -951,6 +961,8 @@ def show_depo(df):
 
     st.divider()
 
+    # DISTRIBUSI DRIVER
+
     st.subheader(
         "Distribusi Retur Berdasarkan Driver"
     )
@@ -1003,4 +1015,6 @@ df = st.session_state[
     "filtered_df"
 ]
 
-show_depo(df)
+show_depo(
+    df
+)
