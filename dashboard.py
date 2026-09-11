@@ -9,6 +9,7 @@ from utils.data_processing import (
     get_data_period,
 )
 
+
 # KONFIGURASI HALAMAN
 
 st.set_page_config(
@@ -18,10 +19,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
 # INISIALISASI SESSION STATE
 
 if "filtered_df" not in st.session_state:
     st.session_state["filtered_df"] = pd.DataFrame()
+
+if "customer_composition_df" not in st.session_state:
+    st.session_state["customer_composition_df"] = pd.DataFrame()
+
 
 # DEFINISI HALAMAN
 
@@ -67,6 +73,28 @@ customer_page = st.Page(
     url_path="customer",
 )
 
+
+# DEFINISI NAVIGASI APLIKASI
+
+pages = [
+    detail_page,
+    overview_page,
+    reason_page,
+    depo_page,
+    driver_sales_page,
+    customer_page,
+]
+
+
+# NAVIGASI STREAMLIT
+# Navigasi bawaan disembunyikan
+
+pg = st.navigation(
+    pages,
+    position="hidden",
+)
+
+
 # JUDUL DASHBOARD
 
 st.title("Dashboard Retur")
@@ -89,23 +117,126 @@ with st.sidebar:
         help="Upload satu file Excel untuk satu periode bulan.",
     )
 
-    if uploaded_file is None:
+
+# KONDISI BELUM ADA FILE
+
+if uploaded_file is None:
+
+    with st.sidebar:
 
         st.info(
             "Silakan upload file Excel laporan Retur "
             "untuk memulai analisis."
         )
 
-        st.stop()
+    st.info(
+        "Upload file Excel melalui menu Data di sidebar "
+        "untuk menampilkan dashboard."
+    )
+
+    st.stop()
 
 
-# NAVIGASI
+# MEMBACA FILE
+
+df, error_message = read_excel_database(
+    uploaded_file
+)
+
+
+# VALIDASI FILE
+
+if error_message:
+
+    st.error(error_message)
+
+    with st.sidebar:
+
+        st.warning(
+            "File belum dapat digunakan. "
+            "Silakan upload file Excel yang sesuai."
+        )
+
+    st.stop()
+
+
+# VALIDASI KOLOM
+
+is_valid, missing_columns = validate_columns(df)
+
+
+if not is_valid:
+
+    st.error(
+        "File tidak dapat diproses karena terdapat "
+        "kolom yang tidak sesuai."
+    )
+
+    st.write("Kolom yang belum ditemukan:")
+
+    for column in missing_columns:
+        st.write(f"- {column}")
+
+    with st.sidebar:
+
+        st.warning(
+            "Navigasi tersedia setelah file "
+            "berhasil divalidasi."
+        )
+
+    st.stop()
+
+
+# MEMBERSIHKAN DATA
+
+df = clean_data(df)
+
+
+# VALIDASI DATA
+
+validation = validate_data(df)
+
+
+# INFORMASI DATA
 
 with st.sidebar:
 
     st.divider()
 
-    st.subheader("Navigasi")
+    st.subheader("📄 Informasi Data")
+
+    st.write(
+        f"**Nama File:** {uploaded_file.name}"
+    )
+
+    jumlah_transaksi = (
+        f"{validation['jumlah_baris']:,}"
+        .replace(",", ".")
+    )
+
+    st.write(
+        f"**Jumlah Transaksi:** {jumlah_transaksi}"
+    )
+
+    min_date, max_date = get_data_period(df)
+
+    if min_date is not None and max_date is not None:
+
+        st.write(
+            f"**Periode:** "
+            f"{min_date.strftime('%d/%m/%Y')} - "
+            f"{max_date.strftime('%d/%m/%Y')}"
+        )
+
+
+# NAVIGASI CUSTOM
+# Navigasi hanya ditampilkan setelah validasi berhasil
+
+with st.sidebar:
+
+    st.divider()
+
+    st.subheader("🧭 Navigasi")
 
     st.page_link(
         detail_page,
@@ -143,86 +274,25 @@ with st.sidebar:
         icon="👥",
     )
 
-# MEMBACA FILE
 
-df, error_message = read_excel_database(
-    uploaded_file
-)
-
-if error_message:
-
-    st.error(error_message)
-
-    st.stop()
-
-
-# VALIDASI KOLOM
-
-is_valid, missing_columns = validate_columns(df)
-
-if not is_valid:
-
-    st.error(
-        "File tidak dapat diproses karena terdapat "
-        "kolom yang tidak sesuai."
-    )
-
-    st.write("Kolom yang belum ditemukan:")
-
-    for column in missing_columns:
-        st.write(f"- {column}")
-
-    st.stop()
-
-
-# MEMBERSIHKAN DATA
-
-df = clean_data(df)
-
-
-# VALIDASI DATA
-
-validation = validate_data(df)
-
+# URUTAN ANALISIS
 
 with st.sidebar:
-    st.divider()
-    st.subheader("📄 Informasi Data")
-
-    st.write(f"**Nama File:** {uploaded_file.name}")
-
-    jumlah_transaksi = (
-        f"{validation['jumlah_baris']:,}".replace(",", ".")
-    )
-
-    st.write(
-        f"**Jumlah Transaksi:** {jumlah_transaksi}"
-    )
-
-    min_date, max_date = get_data_period(df)
-
-    if min_date is not None and max_date is not None:
-
-        st.write(
-            f"**Periode:** "
-            f"{min_date.strftime('%d/%m/%Y')} - "
-            f"{max_date.strftime('%d/%m/%Y')}"
-        )
 
     st.divider()
 
-    with st.sidebar:
-        st.subheader("Urutan Analisis")
+    st.subheader("🔽 Urutan Analisis")
 
-        st.radio(
-            "Urutan Nilai",
-            [
-                "Tertinggi",
-                "Terendah",
-            ],
-            index=0,
-            key="global_sort_order",
-        )
+    st.radio(
+        "Urutan Nilai",
+        [
+            "Tertinggi",
+            "Terendah",
+        ],
+        index=0,
+        key="global_sort_order",
+    )
+
 
 # FUNGSI FILTER GLOBAL
 
@@ -230,11 +300,15 @@ def apply_filters(data):
 
     filtered = data.copy()
 
+
     # FILTER PERIODE
 
     if "Tanggal Kirim" in filtered.columns:
 
-        valid_dates = filtered["Tanggal Kirim"].dropna()
+        valid_dates = (
+            filtered["Tanggal Kirim"]
+            .dropna()
+        )
 
         if not valid_dates.empty:
 
@@ -248,7 +322,10 @@ def apply_filters(data):
                 max_value=max_date,
             )
 
-            if isinstance(selected_period, tuple):
+            if isinstance(
+                selected_period,
+                tuple,
+            ):
 
                 if len(selected_period) == 2:
 
@@ -266,7 +343,6 @@ def apply_filters(data):
                         )
                     ]
 
-    
 
     # FILTER DIMENSI SELAIN CUSTOMER
 
@@ -313,10 +389,12 @@ def apply_filters(data):
                 .isin(selected_value)
             ]
 
-    # DATA UNTUK KOMPOSISI CUSTOMER
-    # Tidak terpengaruh filter Customer sidebar
+
+    # DATA KOMPOSISI CUSTOMER
+    # Tidak terpengaruh filter Customer
 
     composition_df = filtered.copy()
+
 
     # FILTER CUSTOMER
 
@@ -351,12 +429,17 @@ def apply_filters(data):
                     .isin(selected_customer)
                 ]
 
+
     return filtered, composition_df
 
+
 # FILTER DATA
+
 filtered_df, composition_df = apply_filters(df)
 
+
 # SIMPAN HASIL FILTER
+
 st.session_state["filtered_df"] = filtered_df
 
 st.session_state[
@@ -386,18 +469,6 @@ with st.sidebar:
     )
 
 
-# NAVIGASI APLIKASI
-
-pg = st.navigation(
-    [
-        detail_page,
-        overview_page,
-        reason_page,
-        depo_page,
-        driver_sales_page,
-        customer_page,
-    ],
-    position="hidden",
-)
+# MENJALANKAN HALAMAN
 
 pg.run()
