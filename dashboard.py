@@ -14,7 +14,6 @@ from utils.data_processing import (
 
 st.set_page_config(
     page_title="Dashboard Retur",
-    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -241,37 +240,31 @@ with st.sidebar:
     st.page_link(
         detail_page,
         label="Detail Data",
-        icon="📋",
     )
 
     st.page_link(
         overview_page,
         label="Overview",
-        icon="📊",
     )
 
     st.page_link(
         reason_page,
         label="Alasan Retur",
-        icon="⚠️",
     )
 
     st.page_link(
         depo_page,
         label="Analisis Depo",
-        icon="🏢",
     )
 
     st.page_link(
         driver_sales_page,
         label="Driver & Sales",
-        icon="🚚",
     )
 
     st.page_link(
         customer_page,
         label="Customer",
-        icon="👥",
     )
 
 
