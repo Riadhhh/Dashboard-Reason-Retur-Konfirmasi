@@ -9,27 +9,21 @@ from utils.data_processing import (
     get_data_period,
 )
 
-
 # KONFIGURASI HALAMAN
-
 st.set_page_config(
     page_title="Dashboard Retur",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-
 # INISIALISASI SESSION STATE
-
 if "filtered_df" not in st.session_state:
     st.session_state["filtered_df"] = pd.DataFrame()
 
 if "customer_composition_df" not in st.session_state:
     st.session_state["customer_composition_df"] = pd.DataFrame()
 
-
 # DEFINISI HALAMAN
-
 detail_page = st.Page(
     "pages/detail_data.py",
     title="Detail Data",
@@ -66,9 +60,7 @@ customer_page = st.Page(
     url_path="customer",
 )
 
-
 # DEFINISI NAVIGASI APLIKASI
-
 pages = [
     detail_page,
     overview_page,
@@ -78,18 +70,13 @@ pages = [
     customer_page,
 ]
 
-
 # NAVIGASI STREAMLIT
-# Navigasi bawaan disembunyikan
-
 pg = st.navigation(
     pages,
     position="hidden",
 )
 
-
 # JUDUL DASHBOARD
-
 st.title("Dashboard Retur")
 
 st.caption(
@@ -97,13 +84,10 @@ st.caption(
     "data laporan Retur."
 )
 
-
 # UPLOAD DATA
-
 with st.sidebar:
 
     st.header("📂 Data")
-
     uploaded_file = st.file_uploader(
         "Upload laporan Retur",
         type=["xlsx", "xls"],
@@ -112,7 +96,6 @@ with st.sidebar:
 
 
 # KONDISI BELUM ADA FILE
-
 if uploaded_file is None:
 
     with st.sidebar:
@@ -129,16 +112,12 @@ if uploaded_file is None:
 
     st.stop()
 
-
 # MEMBACA FILE
-
 df, error_message = read_excel_database(
     uploaded_file
 )
 
-
 # VALIDASI FILE
-
 if error_message:
 
     st.error(error_message)
@@ -152,11 +131,8 @@ if error_message:
 
     st.stop()
 
-
 # VALIDASI KOLOM
-
 is_valid, missing_columns = validate_columns(df)
-
 
 if not is_valid:
 
@@ -179,19 +155,13 @@ if not is_valid:
 
     st.stop()
 
-
 # MEMBERSIHKAN DATA
-
 df = clean_data(df)
 
-
 # VALIDASI DATA
-
 validation = validate_data(df)
 
-
 # INFORMASI DATA
-
 with st.sidebar:
 
     st.divider()
@@ -221,10 +191,7 @@ with st.sidebar:
             f"{max_date.strftime('%d/%m/%Y')}"
         )
 
-
 # NAVIGASI CUSTOM
-# Navigasi hanya ditampilkan setelah validasi berhasil
-
 with st.sidebar:
 
     st.divider()
@@ -263,7 +230,6 @@ with st.sidebar:
 
 
 # URUTAN ANALISIS
-
 with st.sidebar:
 
     st.divider()
@@ -282,14 +248,12 @@ with st.sidebar:
 
 
 # FUNGSI FILTER GLOBAL
-
 def apply_filters(data):
 
     filtered = data.copy()
 
 
     # FILTER PERIODE
-
     if "Tanggal Kirim" in filtered.columns:
 
         valid_dates = (
@@ -332,7 +296,6 @@ def apply_filters(data):
 
 
     # FILTER DIMENSI SELAIN CUSTOMER
-
     filter_columns = [
         "Nama Depo",
         "Nama Driver",
@@ -378,13 +341,9 @@ def apply_filters(data):
 
 
     # DATA KOMPOSISI CUSTOMER
-    # Tidak terpengaruh filter Customer
-
     composition_df = filtered.copy()
 
-
     # FILTER CUSTOMER
-
     if "Nama Customer" in filtered.columns:
 
         values = (
@@ -416,26 +375,19 @@ def apply_filters(data):
                     .isin(selected_customer)
                 ]
 
-
     return filtered, composition_df
 
-
 # FILTER DATA
-
 filtered_df, composition_df = apply_filters(df)
 
-
 # SIMPAN HASIL FILTER
-
 st.session_state["filtered_df"] = filtered_df
 
 st.session_state[
     "customer_composition_df"
 ] = composition_df
 
-
 # INFORMASI HASIL FILTER
-
 with st.sidebar:
 
     st.divider()
@@ -455,7 +407,5 @@ with st.sidebar:
         f"{jumlah_total} transaksi."
     )
 
-
 # MENJALANKAN HALAMAN
-
 pg.run()

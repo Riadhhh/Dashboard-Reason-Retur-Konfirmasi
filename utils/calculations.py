@@ -2,9 +2,7 @@ import streamlit as st
 
 
 # MENGHITUNG KPI
-
 def calculate_kpis(df):
-
     total_stk = df["Kuantiti STK"].sum()
     total_do = df["Kuantiti DO"].sum()
     total_retur = df["Kuantiti Alasan"].sum()
@@ -19,7 +17,6 @@ def calculate_kpis(df):
         )
 
     else:
-
         return_percentage = 0
 
     return {
@@ -33,12 +30,10 @@ def calculate_kpis(df):
 
 
 # MENENTUKAN ARAH URUTAN
-
 def get_sort_ascending():
 
     sort_order = st.session_state.get(
         "global_sort_order",
         "Tertinggi",
     )
-
     return sort_order == "Terendah"

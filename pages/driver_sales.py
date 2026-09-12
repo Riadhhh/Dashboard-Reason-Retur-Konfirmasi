@@ -3,37 +3,28 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-
 PLOTLY_CONFIG = {
     "displayModeBar": True,
     "displaylogo": False,
     "responsive": True,
 }
 
-
 # MENENTUKAN ARAH URUTAN
-
 def get_sort_ascending():
-
     sort_order = st.session_state.get(
         "global_sort_order",
         "Tertinggi",
     )
-
     return sort_order == "Terendah"
-
 
 def format_number(value):
     return f"{value:,.0f}".replace(",", ".")
 
-
 def format_currency(value):
     return f"Rp {value:,.0f}".replace(",", ".")
 
-
 def format_currency_compact(value):
     value = float(value)
-
     if abs(value) >= 1_000_000_000_000:
         return f"Rp {value / 1_000_000_000_000:.2f} triliun"
 
@@ -48,11 +39,8 @@ def format_currency_compact(value):
 
     return f"Rp {value:,.0f}".replace(",", ".")
 
-
 # PREPARASI DATA
-
 def prepare_driver_sales_data(df):
-
     data = df.copy()
 
     required_numeric = [
@@ -63,9 +51,7 @@ def prepare_driver_sales_data(df):
     ]
 
     for column in required_numeric:
-
         if column in data.columns:
-
             data[column] = pd.to_numeric(
                 data[column],
                 errors="coerce",
@@ -77,7 +63,6 @@ def prepare_driver_sales_data(df):
     ]:
 
         if column in data.columns:
-
             data[column] = (
                 data[column]
                 .fillna("Tidak Diketahui")
@@ -92,11 +77,9 @@ def prepare_driver_sales_data(df):
 
     return data
 
-
 # JUMLAH DATA UNIK
 
 def get_top_n(df, column):
-
     if column not in df.columns:
         return 1
 
@@ -112,9 +95,7 @@ def get_top_n(df, column):
 
     return max(1, unique_count)
 
-
 # DATA BERDASARKAN PARAMETER
-
 def create_parameter_data(
     df,
     column,
@@ -122,7 +103,6 @@ def create_parameter_data(
 ):
 
     if parameter == "Jumlah Transaksi":
-
         grouped = (
             df.groupby(column)
             .size()
@@ -132,7 +112,6 @@ def create_parameter_data(
         x_title = "Jumlah Transaksi"
 
     elif parameter == "Jumlah Barang Retur":
-
         grouped = (
             df.groupby(column)["Kuantiti Alasan"]
             .sum()
@@ -142,7 +121,6 @@ def create_parameter_data(
         x_title = "Jumlah Barang Retur"
 
     else:
-
         grouped = (
             df.groupby(column)["nilai"]
             .sum()
@@ -167,9 +145,7 @@ def create_parameter_data(
 
     return grouped, x_title
 
-
 # GRAFIK DRIVER
-
 def create_driver_chart(
     df,
     top_n,
@@ -185,16 +161,13 @@ def create_driver_chart(
     )
 
     if grouped.empty:
-
         st.info(
             "Tidak terdapat data driver yang dapat "
             "ditampilkan."
         )
-
         return
 
     # Menentukan arah urutan
-
     ascending = get_sort_ascending()
 
     sort_label = (
@@ -222,7 +195,6 @@ def create_driver_chart(
     )
 
     if parameter == "Nominal Retur":
-
         hover_template = (
             "<b>%{y}</b><br>"
             "Nominal Retur: Rp %{x:,.0f}"
@@ -230,7 +202,6 @@ def create_driver_chart(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         hover_template = (
             "<b>%{y}</b><br>"
             "Jumlah Barang Retur: %{x:,.0f}"
@@ -238,7 +209,6 @@ def create_driver_chart(
         )
 
     else:
-
         hover_template = (
             "<b>%{y}</b><br>"
             "Jumlah Transaksi: %{x:,.0f}"
@@ -286,7 +256,6 @@ def create_driver_chart(
     )
 
     if parameter == "Nominal Retur":
-
         fig.update_xaxes(
             tickprefix="Rp ",
         )
@@ -297,9 +266,7 @@ def create_driver_chart(
         config=PLOTLY_CONFIG,
     )
 
-
 # GRAFIK SALES
-
 def create_sales_chart(
     df,
     top_n,
@@ -315,7 +282,6 @@ def create_sales_chart(
     )
 
     if grouped.empty:
-
         st.info(
             "Tidak terdapat data sales yang dapat "
             "ditampilkan."
@@ -324,9 +290,7 @@ def create_sales_chart(
         return
 
     # Menentukan arah urutan
-
     ascending = get_sort_ascending()
-
     sort_label = (
         "Tertinggi"
         if not ascending
@@ -352,7 +316,6 @@ def create_sales_chart(
     )
 
     if parameter == "Nominal Retur":
-
         hover_template = (
             "<b>%{y}</b><br>"
             "Nominal Retur: Rp %{x:,.0f}"
@@ -360,7 +323,6 @@ def create_sales_chart(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         hover_template = (
             "<b>%{y}</b><br>"
             "Jumlah Barang Retur: %{x:,.0f}"
@@ -368,7 +330,6 @@ def create_sales_chart(
         )
 
     else:
-
         hover_template = (
             "<b>%{y}</b><br>"
             "Jumlah Transaksi: %{x:,.0f}"
@@ -416,7 +377,6 @@ def create_sales_chart(
     )
 
     if parameter == "Nominal Retur":
-
         fig.update_xaxes(
             tickprefix="Rp ",
         )
@@ -427,20 +387,16 @@ def create_sales_chart(
         config=PLOTLY_CONFIG,
     )
 
-
 # HEATMAP DRIVER DAN SALES
-
 def create_driver_sales_heatmap(
     df,
     parameter,
 ):
 
     if df.empty:
-
         st.info(
             "Tidak terdapat data untuk ditampilkan."
         )
-
         return
 
     required_columns = [
@@ -457,7 +413,6 @@ def create_driver_sales_heatmap(
     ]
 
     if missing_columns:
-
         st.warning(
             "Kolom yang diperlukan untuk heatmap "
             "tidak tersedia."
@@ -506,9 +461,7 @@ def create_driver_sales_heatmap(
         return
 
     # Menentukan nilai berdasarkan parameter
-
     if parameter == "Jumlah Transaksi":
-
         pair_df = (
             data.groupby(
                 [
@@ -523,7 +476,6 @@ def create_driver_sales_heatmap(
         color_title = "Jumlah Transaksi"
 
     elif parameter == "Jumlah Barang Retur":
-
         pair_df = (
             data.groupby(
                 [
@@ -538,7 +490,6 @@ def create_driver_sales_heatmap(
         color_title = "Jumlah Barang Retur"
 
     else:
-
         pair_df = (
             data.groupby(
                 [
@@ -557,7 +508,6 @@ def create_driver_sales_heatmap(
     ].copy()
 
     if pair_df.empty:
-
         st.info(
             f"Tidak terdapat {color_title.lower()} "
             "yang bernilai lebih dari 0."
@@ -566,11 +516,9 @@ def create_driver_sales_heatmap(
         return
 
     # Menentukan arah urutan
-
     ascending = get_sort_ascending()
 
     # Mengambil 20 kombinasi berdasarkan urutan global
-
     pair_df = (
         pair_df
         .sort_values(
@@ -582,7 +530,6 @@ def create_driver_sales_heatmap(
     )
 
     # Urutan Driver
-
     driver_order = (
         pair_df.groupby("Nama Driver")["Nilai"]
         .sum()
@@ -594,7 +541,6 @@ def create_driver_sales_heatmap(
     )
 
     # Urutan Sales
-
     sales_order = (
         pair_df.groupby("Nama Sales")["Nilai"]
         .sum()
@@ -627,7 +573,6 @@ def create_driver_sales_heatmap(
     ).values
 
     if parameter == "Nominal Retur":
-
         hover_template = (
             "<b>Driver:</b> %{y}<br>"
             "<b>Sales:</b> %{x}<br>"
@@ -637,7 +582,6 @@ def create_driver_sales_heatmap(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         hover_template = (
             "<b>Driver:</b> %{y}<br>"
             "<b>Sales:</b> %{x}<br>"
@@ -647,7 +591,6 @@ def create_driver_sales_heatmap(
         )
 
     else:
-
         hover_template = (
             "<b>Driver:</b> %{y}<br>"
             "<b>Sales:</b> %{x}<br>"
@@ -708,7 +651,6 @@ def create_driver_sales_heatmap(
 
 
 # TABEL RINGKASAN
-
 def create_summary_table(
     df,
     column,
@@ -723,11 +665,9 @@ def create_summary_table(
 
     if grouped.empty:
         return pd.DataFrame()
-
     total = grouped["Jumlah"].sum()
 
     if total > 0:
-
         grouped["Persentase"] = (
             grouped["Jumlah"]
             / total
@@ -735,9 +675,7 @@ def create_summary_table(
         )
 
     else:
-
         grouped["Persentase"] = 0
-
     ascending = get_sort_ascending()
 
     grouped = (
@@ -767,14 +705,12 @@ def create_summary_table(
     )
 
     if parameter == "Nominal Retur":
-
         grouped["Jumlah"] = (
             grouped["Jumlah"]
             .apply(format_currency)
         )
 
     else:
-
         grouped["Jumlah"] = (
             grouped["Jumlah"]
             .apply(format_number)
@@ -791,21 +727,16 @@ def create_summary_table(
             "Persentase": "Persentase",
         }
     )
-
     return grouped
 
-
 # HALAMAN DRIVER & SALES
-
 def show_driver_sales(df):
-
     if df.empty:
 
         st.warning(
             "Tidak ada data yang sesuai dengan filter "
             "yang dipilih."
         )
-
         return
 
     data = prepare_driver_sales_data(
@@ -824,7 +755,6 @@ def show_driver_sales(df):
     st.divider()
 
     # PARAMETER ANALISIS
-
     st.subheader(
         "Parameter Analisis"
     )
@@ -842,7 +772,6 @@ def show_driver_sales(df):
     st.divider()
 
     # HUBUNGAN DRIVER DAN SALES
-
     st.subheader(
         "Hubungan Driver dan Sales"
     )
@@ -862,7 +791,6 @@ def show_driver_sales(df):
     st.divider()
 
     # DISTRIBUSI DRIVER DAN SALES
-
     st.subheader(
         "Distribusi Driver dan Sales"
     )
@@ -883,9 +811,7 @@ def show_driver_sales(df):
     )
 
     # DISTRIBUSI DRIVER
-
     with col1:
-
         st.markdown(
             "#### Distribusi Berdasarkan Driver"
         )
@@ -914,9 +840,7 @@ def show_driver_sales(df):
         )
 
     # DISTRIBUSI SALES
-
     with col2:
-
         st.markdown(
             "#### Distribusi Berdasarkan Sales"
         )
@@ -947,7 +871,6 @@ def show_driver_sales(df):
     st.divider()
 
     # TABEL RINGKASAN
-
     st.subheader(
         "Ringkasan Driver dan Sales"
     )
@@ -966,7 +889,6 @@ def show_driver_sales(df):
     )
 
     # TABEL DRIVER
-
     with tab_driver:
 
         driver_table = create_summary_table(
@@ -982,7 +904,6 @@ def show_driver_sales(df):
         )
 
     # TABEL SALES
-
     with tab_sales:
 
         sales_table = create_summary_table(
@@ -999,7 +920,6 @@ def show_driver_sales(df):
 
 
 # JALANKAN HALAMAN
-
 if "filtered_df" not in st.session_state:
 
     st.warning(

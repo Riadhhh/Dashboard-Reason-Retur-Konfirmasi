@@ -3,52 +3,39 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-
 PLOTLY_CONFIG = {
     "displayModeBar": True,
     "displaylogo": False,
     "responsive": True,
 }
 
-
 # FUNGSI FORMAT ANGKA
-
 def format_number(value):
     return f"{value:,.0f}".replace(",", ".")
-
 
 def format_currency(value):
     return f"Rp {value:,.0f}".replace(",", ".")
 
-
 def format_percentage(value):
     return f"{value:.1f}%"
 
-
 # FUNGSI MENENTUKAN ARAH URUTAN
-
 def get_sort_ascending():
 
     sort_order = st.session_state.get(
         "global_sort_order",
         "Tertinggi",
     )
-
     return sort_order == "Terendah"
 
-
 def get_sort_label():
-
     return st.session_state.get(
         "global_sort_order",
         "Tertinggi",
     )
 
-
 # FUNGSI MENENTUKAN KOLOM PARAMETER
-
 def get_parameter_column(parameter):
-
     if parameter == "Jumlah Transaksi":
         return "transaksi"
 
@@ -57,13 +44,9 @@ def get_parameter_column(parameter):
 
     return "nominal"
 
-
 # PREPARASI DATA ALASAN
-
 def prepare_reason_data(df):
-
     if df.empty:
-
         return pd.DataFrame(
             columns=[
                 "Keterangan Alasan",
@@ -115,7 +98,6 @@ def prepare_reason_data(df):
     total_nominal = reason_df["nominal"].sum()
 
     if total_transaksi > 0:
-
         reason_df["persentase_transaksi"] = (
             reason_df["transaksi"]
             / total_transaksi
@@ -123,11 +105,9 @@ def prepare_reason_data(df):
         )
 
     else:
-
         reason_df["persentase_transaksi"] = 0
 
     if total_retur > 0:
-
         reason_df["persentase_retur"] = (
             reason_df["retur"]
             / total_retur
@@ -135,11 +115,9 @@ def prepare_reason_data(df):
         )
 
     else:
-
         reason_df["persentase_retur"] = 0
 
     if total_nominal > 0:
-
         reason_df["persentase_nominal"] = (
             reason_df["nominal"]
             / total_nominal
@@ -147,23 +125,18 @@ def prepare_reason_data(df):
         )
 
     else:
-
         reason_df["persentase_nominal"] = 0
 
     return reason_df
 
-
 # KARTU DAN TABEL RINGKASAN
-
 def show_summary_cards(reason_df):
-
     if reason_df.empty:
         return
 
     sort_ascending = get_sort_ascending()
 
     # MENCARI ALASAN BERDASARKAN TRANSAKSI
-
     top_transaction = (
         reason_df
         .sort_values(
@@ -174,7 +147,6 @@ def show_summary_cards(reason_df):
     )
 
     # MENCARI ALASAN BERDASARKAN RETUR
-
     top_return = (
         reason_df
         .sort_values(
@@ -185,7 +157,6 @@ def show_summary_cards(reason_df):
     )
 
     # MENCARI ALASAN BERDASARKAN NOMINAL
-
     top_nominal = (
         reason_df
         .sort_values(
@@ -214,11 +185,8 @@ def show_summary_cards(reason_df):
     )
 
     # KARTU RINGKASAN
-
     col1, col2, col3 = st.columns(3)
-
     with col1:
-
         st.metric(
             transaction_label,
             top_transaction[
@@ -232,7 +200,6 @@ def show_summary_cards(reason_df):
         )
 
     with col2:
-
         st.metric(
             return_label,
             top_return[
@@ -246,7 +213,6 @@ def show_summary_cards(reason_df):
         )
 
     with col3:
-
         st.metric(
             nominal_label,
             top_nominal[
@@ -260,7 +226,6 @@ def show_summary_cards(reason_df):
         )
 
 # GRAFIK BERDASARKAN PARAMETER
-
 def create_parameter_chart(
     reason_df,
     top_n,
@@ -289,7 +254,6 @@ def create_parameter_chart(
     )
 
     if parameter == "Jumlah Transaksi":
-
         text_template = "%{text:,.0f}"
 
         hover_template = (
@@ -305,7 +269,6 @@ def create_parameter_chart(
         ]
 
     elif parameter == "Jumlah Barang Retur":
-
         text_template = "%{text:,.0f}"
 
         hover_template = (
@@ -321,7 +284,6 @@ def create_parameter_chart(
         ]
 
     else:
-
         text_template = "%{text:,.0f}"
 
         hover_template = (
@@ -385,9 +347,7 @@ def create_parameter_chart(
         config=PLOTLY_CONFIG,
     )
 
-
 # GRAFIK KOMPOSISI ALASAN
-
 def create_reason_donut(
     reason_df,
     top_n,
@@ -408,7 +368,6 @@ def create_reason_donut(
     )
 
     if len(chart_df) > top_n:
-
         top_df = chart_df.head(top_n).copy()
 
         other_value = (
@@ -418,7 +377,6 @@ def create_reason_donut(
         )
 
         if other_value > 0:
-
             other_row = pd.DataFrame({
                 "Keterangan Alasan": [
                     "Lainnya"
@@ -442,7 +400,6 @@ def create_reason_donut(
             )
 
         else:
-
             chart_df = top_df[
                 [
                     "Keterangan Alasan",
@@ -451,7 +408,6 @@ def create_reason_donut(
             ]
 
     else:
-
         chart_df = chart_df[
             [
                 "Keterangan Alasan",
@@ -472,19 +428,16 @@ def create_reason_donut(
     )
 
     if parameter == "Nominal Retur":
-
         hover_value = (
             "Nominal Retur: Rp %{value:,.0f}"
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         hover_value = (
             "Jumlah Barang Retur: %{value:,.0f}"
         )
 
     else:
-
         hover_value = (
             "Jumlah Transaksi: %{value:,.0f}"
         )
@@ -520,9 +473,7 @@ def create_reason_donut(
         config=PLOTLY_CONFIG,
     )
 
-
 # GRAFIK TREN RETUR
-
 def create_reason_trend(
     df,
     selected_reason,
@@ -562,16 +513,13 @@ def create_reason_trend(
     )
 
     if data.empty:
-
         st.info(
             "Tidak terdapat data tanggal untuk "
             "alasan yang dipilih."
         )
-
         return
 
     if parameter == "Jumlah Transaksi":
-
         trend_df = (
             data
             .groupby("Tanggal Kirim")
@@ -594,7 +542,6 @@ def create_reason_trend(
         hover_label = "Jumlah Transaksi"
 
     elif parameter == "Jumlah Barang Retur":
-
         trend_df = (
             data
             .groupby("Tanggal Kirim")
@@ -617,7 +564,6 @@ def create_reason_trend(
         hover_label = "Jumlah Barang Retur"
 
     else:
-
         trend_df = (
             data
             .groupby("Tanggal Kirim")
@@ -652,7 +598,6 @@ def create_reason_trend(
     )
 
     if parameter == "Nominal Retur":
-
         hover_template = (
             "<b>%{x|%d %b %Y}</b><br>"
             "Nominal Retur: Rp %{y:,.0f}"
@@ -660,7 +605,6 @@ def create_reason_trend(
         )
 
     else:
-
         hover_template = (
             "<b>%{x|%d %b %Y}</b><br>"
             f"{hover_label}: "
@@ -699,9 +643,7 @@ def create_reason_trend(
         config=PLOTLY_CONFIG,
     )
 
-
 # MEMBUAT HEATMAP DIMENSI DAN ALASAN
-
 def create_reason_dimension_heatmap(
     df,
     dimension,
@@ -723,12 +665,10 @@ def create_reason_dimension_heatmap(
     ]
 
     if missing_columns:
-
         st.warning(
             "Kolom yang dibutuhkan untuk heatmap "
             "tidak tersedia."
         )
-
         return
 
     heatmap_df = df[
@@ -758,19 +698,15 @@ def create_reason_dimension_heatmap(
     ).fillna(0)
 
     if parameter == "Jumlah Barang Retur":
-
         metric_column = "Kuantiti Alasan"
         metric_label = "Jumlah Barang Retur"
 
     elif parameter == "Nominal Retur":
-
         metric_column = "nilai"
         metric_label = "Nominal Retur"
 
     else:
-
         heatmap_df["Jumlah Transaksi"] = 1
-
         metric_column = "Jumlah Transaksi"
         metric_label = "Jumlah Transaksi"
 
@@ -791,12 +727,10 @@ def create_reason_dimension_heatmap(
     )
 
     if not selected_dimensions:
-
         st.info(
             "Tidak terdapat data yang dapat "
             "ditampilkan."
         )
-
         return
 
     heatmap_df = heatmap_df[
@@ -827,12 +761,10 @@ def create_reason_dimension_heatmap(
     ].copy()
 
     if heatmap_df.empty:
-
         st.info(
             "Tidak terdapat kombinasi data "
             "untuk heatmap."
         )
-
         return
 
     reason_order = (
@@ -932,11 +864,8 @@ def create_reason_dimension_heatmap(
         config=PLOTLY_CONFIG,
     )
 
-
 # HALAMAN ANALISIS Retur
-
 def show_gagal_kirim(df):
-
     st.title(
         "Alasan Retur"
     )
@@ -948,22 +877,18 @@ def show_gagal_kirim(df):
     )
 
     if df.empty:
-
         st.warning(
             "Tidak ada data yang sesuai dengan "
             "filter yang dipilih."
         )
-
         return
 
     reason_df = prepare_reason_data(df)
 
     if reason_df.empty:
-
         st.warning(
             "Data alasan Retur tidak tersedia."
         )
-
         return
 
     max_reason = len(reason_df)
@@ -974,7 +899,6 @@ def show_gagal_kirim(df):
     )
 
     # PARAMETER ANALISIS
-
     st.subheader(
         "Parameter Analisis"
     )
@@ -992,7 +916,6 @@ def show_gagal_kirim(df):
     st.divider()
 
     # Ringkasan
-
     st.subheader(
         "Ringkasan Alasan"
     )
@@ -1004,7 +927,6 @@ def show_gagal_kirim(df):
     st.divider()
 
     # Frekuensi dan komposisi
-
     st.subheader(
         "Frekuensi dan Komposisi Alasan"
     )
@@ -1012,14 +934,12 @@ def show_gagal_kirim(df):
     col1, col2 = st.columns(2)
 
     with col1:
-
         st.caption(
             f"Alasan berdasarkan {parameter.lower()} "
             f"dari urutan {get_sort_label().lower()}."
         )
 
         if max_reason > 1:
-
             top_n_frequency = st.slider(
                 "Jumlah alasan",
                 min_value=1,
@@ -1030,7 +950,6 @@ def show_gagal_kirim(df):
             )
 
         else:
-
             top_n_frequency = 1
 
         create_parameter_chart(
@@ -1040,7 +959,6 @@ def show_gagal_kirim(df):
         )
 
     with col2:
-
         st.caption(
             f"Proporsi alasan berdasarkan "
             f"{parameter.lower()}."
@@ -1060,7 +978,6 @@ def show_gagal_kirim(df):
     st.divider()
 
     # Tren alasan
-
     st.subheader(
         f"Tren {parameter} Berdasarkan Alasan"
     )
@@ -1096,7 +1013,6 @@ def show_gagal_kirim(df):
     st.divider()
 
     # Heatmap
-
     st.subheader(
         "Distribusi Alasan Berdasarkan Dimensi"
     )
@@ -1128,7 +1044,6 @@ def show_gagal_kirim(df):
     st.divider()
 
     # DETAIL RINGKASAN
-
     st.subheader(
         "Detail Ringkasan Alasan"
     )
@@ -1144,7 +1059,6 @@ def show_gagal_kirim(df):
     )
 
 # TABEL DETAIL RINGKASAN
-
 def show_detail_summary(reason_df):
 
     if reason_df.empty:
@@ -1192,15 +1106,12 @@ def show_detail_summary(reason_df):
     )
 
 # Jalankan halaman
-
 if "filtered_df" in st.session_state:
-
     show_gagal_kirim(
         st.session_state["filtered_df"]
     )
 
 else:
-
     st.warning(
         "Data belum tersedia. Silakan upload "
         "file terlebih dahulu."

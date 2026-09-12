@@ -2,30 +2,23 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-
 PLOTLY_CONFIG = {
     "displayModeBar": True,
     "displaylogo": False,
     "responsive": True,
 }
 
-
 # FORMAT ANGKA
-
 def format_number(value):
     return f"{value:,.0f}".replace(",", ".")
-
 
 def format_currency(value):
     return f"Rp {value:,.0f}".replace(",", ".")
 
-
 def format_percentage(value):
     return f"{value:.2f}%"
 
-
 def format_currency_compact(value):
-
     value = float(value)
 
     if abs(value) >= 1_000_000_000_000:
@@ -42,21 +35,15 @@ def format_currency_compact(value):
 
     return f"Rp {value:,.0f}".replace(",", ".")
 
-
 # MENENTUKAN ARAH URUTAN
-
 def get_sort_ascending():
-
     sort_order = st.session_state.get(
         "global_sort_order",
         "Tertinggi",
     )
-
     return sort_order == "Terendah"
 
-
 # PREPARASI DATA
-
 def prepare_overview_data(df):
 
     data = df.copy()
@@ -83,12 +70,9 @@ def prepare_overview_data(df):
             data["Tanggal Kirim"],
             errors="coerce",
         )
-
     return data
 
-
 # MENGHITUNG KPI
-
 def calculate_overview_kpis(df):
 
     total_stk = 0
@@ -98,28 +82,20 @@ def calculate_overview_kpis(df):
 
     if "Kuantiti STK" in df.columns:
         total_stk = df["Kuantiti STK"].sum()
-
     if "Kuantiti DO" in df.columns:
         total_do = df["Kuantiti DO"].sum()
-
     if "Kuantiti Alasan" in df.columns:
         total_retur = df["Kuantiti Alasan"].sum()
-
     if "nilai" in df.columns:
         total_nilai = df["nilai"].sum()
-
     if total_stk > 0:
-
         persentase_retur = (
             total_retur
             / total_stk
             * 100
         )
-
     else:
-
         persentase_retur = 0
-
     return {
         "total_stk": total_stk,
         "total_do": total_do,
@@ -128,11 +104,8 @@ def calculate_overview_kpis(df):
         "persentase_retur": persentase_retur,
     }
 
-
 # KPI CARDS
-
 def show_kpi_cards(df):
-
     kpi = calculate_overview_kpis(df)
 
     col1, col2, col3, col4, col5 = st.columns(
@@ -141,7 +114,6 @@ def show_kpi_cards(df):
     )
 
     with col1:
-
         st.metric(
             "Total STK",
             format_number(
@@ -150,7 +122,6 @@ def show_kpi_cards(df):
         )
 
     with col2:
-
         st.metric(
             "Total DO",
             format_number(
@@ -159,7 +130,6 @@ def show_kpi_cards(df):
         )
 
     with col3:
-
         st.metric(
             "Total Retur",
             format_number(
@@ -168,7 +138,6 @@ def show_kpi_cards(df):
         )
 
     with col4:
-
         st.metric(
             "Persentase Retur",
             format_percentage(
@@ -177,7 +146,6 @@ def show_kpi_cards(df):
         )
 
     with col5:
-
         st.metric(
             "Nominal Retur",
             format_currency(
@@ -185,9 +153,7 @@ def show_kpi_cards(df):
             ),
         )
 
-
 # PREPARASI DATA ALASAN
-
 def prepare_reason_data(df):
 
     if df.empty:
@@ -247,9 +213,7 @@ def prepare_reason_data(df):
 
     return reason_df
 
-
 # RINGKASAN ALASAN
-
 def show_reason_summary(df):
 
     reason_df = prepare_reason_data(df)
@@ -274,7 +238,6 @@ def show_reason_summary(df):
     col1 = st.columns(1)[0]
 
     with col1:
-
         parameter = st.selectbox(
             "Parameter Analisis",
             [
@@ -286,15 +249,12 @@ def show_reason_summary(df):
         )
 
     if parameter == "Jumlah Transaksi":
-
         metric_column = "transaksi"
 
     elif parameter == "Jumlah Barang Retur":
-
         metric_column = "retur"
 
     else:
-
         metric_column = "nominal"
 
     ascending = get_sort_ascending()
@@ -318,11 +278,8 @@ def show_reason_summary(df):
     )
 
     # RINGKASAN UTAMA
-
     first_row = ranked_df.iloc[0]
-
     if parameter == "Jumlah Transaksi":
-
         nilai_utama = format_number(
             first_row["transaksi"]
         )
@@ -336,7 +293,6 @@ def show_reason_summary(df):
         label_nilai = "Jumlah Transaksi"
 
     elif parameter == "Jumlah Barang Retur":
-
         nilai_utama = format_number(
             first_row["retur"]
         )
@@ -350,7 +306,6 @@ def show_reason_summary(df):
         label_nilai = "Barang Retur"
 
     else:
-
         nilai_utama = format_currency(
             first_row["nominal"]
         )
@@ -372,21 +327,18 @@ def show_reason_summary(df):
     col1, col2, col3 = st.columns(3)
 
     with col1:
-
         st.metric(
             f"Alasan {label_urutan}",
             first_row["Keterangan Alasan"],
         )
 
     with col2:
-
         st.metric(
             label_nilai,
             nilai_utama,
         )
 
     with col3:
-
         st.metric(
             "Kontribusi",
             format_percentage(
@@ -396,9 +348,7 @@ def show_reason_summary(df):
 
     st.divider()
 
-
 # PERBANDINGAN DEPO
-
 def prepare_depo_comparison_data(df):
 
     if df.empty or "Nama Depo" not in df.columns:
@@ -451,16 +401,13 @@ def prepare_depo_comparison_data(df):
 
     return depo_df
 
-
 # BAR CHART PERBANDINGAN DEPO
-
 def create_depo_comparison_bar(
     depo_df,
     parameter,
 ):
 
     if depo_df.empty:
-
         st.info(
             "Data depo tidak tersedia."
         )
@@ -470,7 +417,6 @@ def create_depo_comparison_bar(
     ascending = get_sort_ascending()
 
     if parameter == "Jumlah Transaksi":
-
         metric_column = "transaksi"
         x_title = "Jumlah Transaksi"
 
@@ -481,7 +427,6 @@ def create_depo_comparison_bar(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         metric_column = "retur"
         x_title = "Jumlah Barang Retur"
 
@@ -492,7 +437,6 @@ def create_depo_comparison_bar(
         )
 
     else:
-
         metric_column = "nominal"
         x_title = "Nominal Retur"
 
@@ -520,7 +464,6 @@ def create_depo_comparison_bar(
     )
 
     if parameter == "Nominal Retur":
-
         fig.update_traces(
             texttemplate="Rp %{text:,.0f}",
             textposition="outside",
@@ -529,7 +472,6 @@ def create_depo_comparison_bar(
         )
 
     else:
-
         fig.update_traces(
             texttemplate="%{text:,.0f}",
             textposition="outside",
@@ -575,16 +517,13 @@ def create_depo_comparison_bar(
         config=PLOTLY_CONFIG,
     )
 
-
-# DONAT PERSENTASE KONTRIBUSI DEPO
-
+# PERSENTASE KONTRIBUSI DEPO
 def create_depo_comparison_donut(
     depo_df,
     parameter,
 ):
 
     if depo_df.empty:
-
         st.info(
             "Data depo tidak tersedia."
         )
@@ -592,17 +531,14 @@ def create_depo_comparison_donut(
         return
 
     if parameter == "Jumlah Transaksi":
-
         metric_column = "transaksi"
         label_metric = "Jumlah Transaksi"
 
     elif parameter == "Jumlah Barang Retur":
-
         metric_column = "retur"
         label_metric = "Jumlah Barang Retur"
 
     else:
-
         metric_column = "nominal"
         label_metric = "Nominal Retur"
 
@@ -618,12 +554,10 @@ def create_depo_comparison_donut(
     ].sum()
 
     if total_value <= 0:
-
         st.info(
             "Tidak terdapat nilai yang dapat "
             "digunakan untuk menghitung persentase."
         )
-
         return
 
     donut_df["Persentase"] = (
@@ -681,9 +615,7 @@ def create_depo_comparison_donut(
         config=PLOTLY_CONFIG,
     )
 
-
 # PERBANDINGAN SETIAP DEPO
-
 def show_depo_comparison(df):
 
     depo_df = prepare_depo_comparison_data(
@@ -691,7 +623,6 @@ def show_depo_comparison(df):
     )
 
     if depo_df.empty:
-
         return
 
     st.subheader(
@@ -712,7 +643,6 @@ def show_depo_comparison(df):
         ],
         key="overview_depo_parameter",
     )
-
     st.divider()
 
     col1, col2 = st.columns(
@@ -721,21 +651,18 @@ def show_depo_comparison(df):
     )
 
     with col1:
-
         create_depo_comparison_bar(
             depo_df,
             parameter,
         )
 
     with col2:
-
         create_depo_comparison_donut(
             depo_df,
             parameter,
         )
 
     st.divider()
-
 
 # RINGKASAN KONDISI DATA
 
@@ -802,9 +729,7 @@ def create_overall_status_chart(df):
         config=PLOTLY_CONFIG,
     )
 
-
 # TREN DATA
-
 def create_overview_trend_chart(df):
 
     required_columns = [
@@ -821,12 +746,10 @@ def create_overview_trend_chart(df):
     ]
 
     if missing_columns:
-
         st.warning(
             "Kolom yang diperlukan untuk grafik "
             "tren tidak tersedia."
         )
-
         return
 
     trend_df = df[
@@ -836,12 +759,10 @@ def create_overview_trend_chart(df):
     ).copy()
 
     if trend_df.empty:
-
         st.info(
             "Tidak terdapat data tanggal yang dapat "
             "digunakan untuk grafik tren."
         )
-
         return
 
     trend_df = (
@@ -931,9 +852,7 @@ def create_overview_trend_chart(df):
         config=PLOTLY_CONFIG,
     )
 
-
 # RASIO PENGIRIMAN
-
 def create_delivery_ratio_chart(df):
 
     kpi = calculate_overview_kpis(df)
@@ -943,12 +862,10 @@ def create_delivery_ratio_chart(df):
     total_retur = kpi["total_retur"]
 
     if total_stk <= 0:
-
         st.info(
             "Tidak dapat menghitung komposisi karena "
             "Total STK bernilai 0."
         )
-
         return
 
     ratio_df = pd.DataFrame({
@@ -1001,13 +918,10 @@ def create_delivery_ratio_chart(df):
         config=PLOTLY_CONFIG,
     )
 
-
 # RINGKASAN PERIODE
-
 def show_period_summary(df):
 
     if "Tanggal Kirim" not in df.columns:
-
         return
 
     valid_dates = df[
@@ -1015,7 +929,6 @@ def show_period_summary(df):
     ].dropna()
 
     if valid_dates.empty:
-
         return
 
     min_date = valid_dates.min()
@@ -1029,7 +942,6 @@ def show_period_summary(df):
     kpi = calculate_overview_kpis(df)
 
     if kpi["total_stk"] > 0:
-
         do_percentage = (
             kpi["total_do"]
             / kpi["total_stk"]
@@ -1043,7 +955,6 @@ def show_period_summary(df):
         )
 
     else:
-
         do_percentage = 0
         retur_percentage = 0
 
@@ -1060,18 +971,14 @@ def show_period_summary(df):
         """
     )
 
-
 # HALAMAN OVERVIEW
-
 def show_overview(df):
 
     if df.empty:
-
         st.warning(
             "Tidak ada data yang sesuai dengan filter "
             "yang dipilih."
         )
-
         return
 
     data = prepare_overview_data(df)
@@ -1088,7 +995,6 @@ def show_overview(df):
     st.divider()
 
     # KPI UTAMA
-
     st.subheader(
         "Ringkasan Utama"
     )
@@ -1100,7 +1006,6 @@ def show_overview(df):
     st.divider()
 
     # INFORMASI PERIODE
-
     st.subheader(
         "Informasi Periode"
     )
@@ -1112,19 +1017,16 @@ def show_overview(df):
     st.divider()
 
     # PERBANDINGAN DEPO
-
     show_depo_comparison(
         data
     )
 
     # ANALISIS ALASAN RETUR
-
     show_reason_summary(
         data
     )
 
     # TREN
-
     st.subheader(
         "Tren Pengiriman"
     )
@@ -1141,7 +1043,6 @@ def show_overview(df):
     st.divider()
 
     # RINGKASAN HASIL PENGIRIMAN
-
     st.subheader(
         "Ringkasan Hasil Pengiriman"
     )
@@ -1157,20 +1058,16 @@ def show_overview(df):
     )
 
     with col1:
-
         create_overall_status_chart(
             data
         )
 
     with col2:
-
         create_delivery_ratio_chart(
             data
         )
 
-
 # JALANKAN HALAMAN
-
 if "filtered_df" not in st.session_state:
 
     st.warning(
@@ -1179,7 +1076,6 @@ if "filtered_df" not in st.session_state:
     )
 
     st.stop()
-
 
 df = st.session_state[
     "filtered_df"

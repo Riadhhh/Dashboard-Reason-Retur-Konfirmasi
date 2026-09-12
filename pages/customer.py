@@ -10,27 +10,21 @@ PLOTLY_CONFIG = {
 }
 
 def get_sort_ascending():
-
     sort_order = st.session_state.get(
         "global_sort_order",
         "Tertinggi",
     )
-
     return sort_order == "Terendah"
 
 # FORMAT ANGKA
 def format_number(value):
     return f"{value:,.0f}".replace(",", ".")
 
-
 def format_currency(value):
     return f"Rp {value:,.0f}".replace(",", ".")
 
-
 # PREPARASI DATA
-
 def prepare_customer_data(df):
-
     data = df.copy()
 
     numeric_columns = [
@@ -41,9 +35,7 @@ def prepare_customer_data(df):
     ]
 
     for column in numeric_columns:
-
         if column in data.columns:
-
             data[column] = pd.to_numeric(
                 data[column],
                 errors="coerce",
@@ -56,9 +48,7 @@ def prepare_customer_data(df):
     ]
 
     for column in text_columns:
-
         if column in data.columns:
-
             data[column] = (
                 data[column]
                 .fillna("Tidak Diketahui")
@@ -70,14 +60,10 @@ def prepare_customer_data(df):
                 data[column] == "",
                 column,
             ] = "Tidak Diketahui"
-
     return data
 
-
 # JUMLAH CUSTOMER UNIK
-
 def get_unique_count(df, column):
-
     if column not in df.columns:
         return 1
 
@@ -90,12 +76,9 @@ def get_unique_count(df, column):
         .dropna()
         .nunique()
     )
-
     return max(1, unique_count)
 
-
 # DATA KONTRIBUSI CUSTOMER
-
 def create_customer_parameter_data(
     df,
     parameter,
@@ -104,7 +87,6 @@ def create_customer_parameter_data(
     customer_column = "Nama Customer"
 
     if parameter == "Jumlah Transaksi":
-
         grouped = (
             df.groupby(customer_column)
             .size()
@@ -114,7 +96,6 @@ def create_customer_parameter_data(
         parameter_label = "Jumlah Transaksi"
 
     elif parameter == "Jumlah Barang Retur":
-
         grouped = (
             df.groupby(customer_column)["Kuantiti Alasan"]
             .sum()
@@ -124,7 +105,6 @@ def create_customer_parameter_data(
         parameter_label = "Jumlah Barang Retur"
 
     else:
-
         grouped = (
             df.groupby(customer_column)["nilai"]
             .sum()
@@ -146,12 +126,9 @@ def create_customer_parameter_data(
     grouped = grouped[
         grouped[customer_column] != ""
     ]
-
     return grouped, parameter_label
 
-
 # GRAFIK KONTRIBUSI CUSTOMER
-
 def create_customer_contribution_chart(
     df,
     top_n,
@@ -171,7 +148,6 @@ def create_customer_contribution_chart(
             "Tidak terdapat data Customer yang "
             "dapat ditampilkan."
         )
-
         return
 
     total = grouped["Jumlah"].sum()
@@ -193,7 +169,6 @@ def create_customer_contribution_chart(
     )
 
     if total > 0:
-
         grouped["Persentase"] = (
             grouped["Jumlah"]
             / total
@@ -201,7 +176,6 @@ def create_customer_contribution_chart(
         )
 
     else:
-
         grouped["Persentase"] = 0
 
     sort_label = (
@@ -216,7 +190,6 @@ def create_customer_contribution_chart(
     )
 
     if parameter == "Nominal Retur":
-
         hover_template = (
             "<b>%{y}</b><br>"
             "Nominal Retur: Rp %{x:,.0f}<br>"
@@ -225,7 +198,6 @@ def create_customer_contribution_chart(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         hover_template = (
             "<b>%{y}</b><br>"
             "Jumlah Barang Retur: %{x:,.0f}<br>"
@@ -234,7 +206,6 @@ def create_customer_contribution_chart(
         )
 
     else:
-
         hover_template = (
             "<b>%{y}</b><br>"
             "Jumlah Transaksi: %{x:,.0f}<br>"
@@ -284,7 +255,6 @@ def create_customer_contribution_chart(
     )
 
     if parameter == "Nominal Retur":
-
         fig.update_xaxes(
             tickprefix="Rp ",
         )
@@ -295,9 +265,7 @@ def create_customer_contribution_chart(
         config=PLOTLY_CONFIG,
     )
 
-
 # KOMPOSISI CUSTOMER
-
 def create_customer_composition(
     df,
     selected_customers,
@@ -312,12 +280,10 @@ def create_customer_composition(
     )
 
     if grouped.empty:
-
         st.info(
             "Tidak terdapat data Customer "
             "yang dapat dianalisis."
         )
-
         return
 
     composition_df = grouped[
@@ -327,12 +293,10 @@ def create_customer_composition(
     ].copy()
 
     if composition_df.empty:
-
         st.info(
             "Pilih minimal satu Customer "
             "untuk menampilkan komposisi."
         )
-
         return
 
     composition_df = composition_df.sort_values(
@@ -348,7 +312,6 @@ def create_customer_composition(
     )
 
     if parameter == "Nominal Retur":
-
         hover_template = (
             "<b>%{label}</b><br>"
             "Nominal Retur: Rp %{value:,.0f}<br>"
@@ -357,7 +320,6 @@ def create_customer_composition(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         hover_template = (
             "<b>%{label}</b><br>"
             "Jumlah Barang Retur: %{value:,.0f}<br>"
@@ -366,7 +328,6 @@ def create_customer_composition(
         )
 
     else:
-
         hover_template = (
             "<b>%{label}</b><br>"
             "Jumlah Transaksi: %{value:,.0f}<br>"
@@ -401,9 +362,7 @@ def create_customer_composition(
         config=PLOTLY_CONFIG,
     )
 
-
 # HEATMAP CUSTOMER DENGAN DRIVER ATAU SALES
-
 def create_customer_relation_heatmap(
     df,
     relation_column,
@@ -428,12 +387,10 @@ def create_customer_relation_heatmap(
     ]
 
     if missing_columns:
-
         st.warning(
             "Kolom yang diperlukan untuk heatmap "
             "tidak tersedia."
         )
-
         return
 
     for column in [
@@ -464,11 +421,9 @@ def create_customer_relation_heatmap(
     ).fillna(0)
 
     # Menentukan 10 Customer berdasarkan urutan analisis
-
     ascending = get_sort_ascending()
 
     if parameter == "Jumlah Transaksi":
-
         top_customers = (
             data.groupby(customer_column)
             .size()
@@ -480,7 +435,6 @@ def create_customer_relation_heatmap(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         top_customers = (
             data.groupby(customer_column)["Kuantiti Alasan"]
             .sum()
@@ -492,7 +446,6 @@ def create_customer_relation_heatmap(
         )
 
     else:
-
         top_customers = (
             data.groupby(customer_column)["nilai"]
             .sum()
@@ -508,18 +461,14 @@ def create_customer_relation_heatmap(
     ].copy()
 
     if data.empty:
-
         st.info(
             "Tidak terdapat Customer yang dapat "
             "digunakan untuk heatmap."
         )
-
         return
 
     # Menghitung hubungan Customer dengan Driver atau Sales
-
     if parameter == "Jumlah Transaksi":
-
         grouped = (
             data.groupby(
                 [
@@ -534,7 +483,6 @@ def create_customer_relation_heatmap(
         value_label = "Jumlah Transaksi"
 
     elif parameter == "Jumlah Barang Retur":
-
         grouped = (
             data.groupby(
                 [
@@ -549,7 +497,6 @@ def create_customer_relation_heatmap(
         value_label = "Jumlah Barang Retur"
 
     else:
-
         grouped = (
             data.groupby(
                 [
@@ -568,16 +515,13 @@ def create_customer_relation_heatmap(
     ].copy()
 
     if grouped.empty:
-
         st.info(
             "Tidak terdapat hubungan Customer dan "
             f"{relation_column} yang dapat dianalisis."
         )
-
         return
 
     # Membatasi hubungan menjadi 20 kombinasi berdasarkan urutan analisis
-
     grouped = (
         grouped
         .sort_values(
@@ -632,7 +576,6 @@ def create_customer_relation_heatmap(
     ).values
 
     if parameter == "Nominal Retur":
-
         hover_template = (
             "<b>Customer:</b> %{y}<br>"
             f"<b>{relation_column}:</b> "
@@ -643,7 +586,6 @@ def create_customer_relation_heatmap(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         hover_template = (
             "<b>Customer:</b> %{y}<br>"
             f"<b>{relation_column}:</b> "
@@ -654,7 +596,6 @@ def create_customer_relation_heatmap(
         )
 
     else:
-
         hover_template = (
             "<b>Customer:</b> %{y}<br>"
             f"<b>{relation_column}:</b> "
@@ -714,9 +655,7 @@ def create_customer_relation_heatmap(
         config=PLOTLY_CONFIG,
     )
 
-
 # TABEL RINGKASAN CUSTOMER
-
 def create_customer_summary_table(
     df,
     parameter,
@@ -735,7 +674,6 @@ def create_customer_summary_table(
     total = grouped["Jumlah"].sum()
 
     if total > 0:
-
         grouped["Persentase"] = (
             grouped["Jumlah"]
             / total
@@ -743,7 +681,6 @@ def create_customer_summary_table(
         )
 
     else:
-
         grouped["Persentase"] = 0
 
     ascending = get_sort_ascending()
@@ -775,14 +712,12 @@ def create_customer_summary_table(
     )
 
     if parameter == "Nominal Retur":
-
         grouped["Jumlah"] = (
             grouped["Jumlah"]
             .apply(format_currency)
         )
 
     else:
-
         grouped["Jumlah"] = (
             grouped["Jumlah"]
             .apply(format_number)
@@ -793,21 +728,15 @@ def create_customer_summary_table(
             "Jumlah": parameter_label
         }
     )
-
     return grouped
 
-
 # HALAMAN CUSTOMER
-
 def show_customer(df):
-
     if df.empty:
-
         st.warning(
             "Tidak ada data yang sesuai dengan filter "
             "yang dipilih."
         )
-
         return
 
     data = prepare_customer_data(df)
@@ -822,7 +751,6 @@ def show_customer(df):
     st.divider()
 
     # PARAMETER ANALISIS
-
     st.subheader("Parameter Analisis")
 
     parameter = st.selectbox(
@@ -838,7 +766,6 @@ def show_customer(df):
     st.divider()
 
     # KONTRIBUSI CUSTOMER
-
     st.subheader("Kontribusi Customer")
 
     st.caption(
@@ -872,16 +799,12 @@ def show_customer(df):
     st.divider()
 
     # KOMPOSISI CUSTOMER
-
     st.subheader("Komposisi Customer")
 
     st.caption(
         "Pilih Customer yang ingin dibandingkan "
         "dengan maksimal 7 Customer."
     )
-
-    # Menggunakan data khusus komposisi yang tidak terpengaruh
-    # oleh filter Customer di sidebar
 
     composition_source = st.session_state.get(
         "customer_composition_df",
@@ -915,7 +838,6 @@ def show_customer(df):
     st.divider()
 
     # HUBUNGAN CUSTOMER DAN DRIVER
-
     st.subheader("Hubungan Customer dan Driver")
 
     st.caption(
@@ -932,7 +854,6 @@ def show_customer(df):
     st.divider()
 
     # HUBUNGAN CUSTOMER DAN SALES
-
     st.subheader("Hubungan Customer dan Sales")
 
     st.caption(
@@ -949,7 +870,6 @@ def show_customer(df):
     st.divider()
 
     # RINGKASAN CUSTOMER
-
     st.subheader("Ringkasan Customer")
 
     st.caption(
@@ -968,18 +888,13 @@ def show_customer(df):
         hide_index=True,
     )
 
-
 # JALANKAN HALAMAN
-
 if "filtered_df" not in st.session_state:
-
     st.warning(
         "Data belum tersedia. Silakan upload "
         "file terlebih dahulu."
     )
-
     st.stop()
-
 
 df = st.session_state[
     "filtered_df"

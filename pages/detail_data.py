@@ -1,9 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-
 # KONFIGURASI TAMPILAN
-
 DATAFRAME_HEIGHT = 600
 
 DISPLAY_COLUMNS = [
@@ -20,45 +18,31 @@ DISPLAY_COLUMNS = [
     "nilai",
 ]
 
-
 # FORMAT ANGKA
-
 def format_number(value):
     return f"{value:,.0f}".replace(",", ".")
-
 
 def format_currency(value):
     return f"Rp {value:,.0f}".replace(",", ".")
 
-
 # MENENTUKAN ARAH URUTAN
-
 def get_sort_ascending():
-
     sort_order = st.session_state.get(
         "global_sort_order",
         "Tertinggi",
     )
-
     return sort_order == "Terendah"
 
-
 # MENENTUKAN LABEL URUTAN
-
 def get_sort_label():
-
     sort_order = st.session_state.get(
         "global_sort_order",
         "Tertinggi",
     )
-
     return sort_order
 
-
 # PREPARASI DATA
-
 def prepare_detail_data(df):
-
     data = df.copy()
 
     numeric_columns = [
@@ -78,7 +62,6 @@ def prepare_detail_data(df):
             ).fillna(0)
 
     if "Tanggal Kirim" in data.columns:
-
         data["Tanggal Kirim"] = pd.to_datetime(
             data["Tanggal Kirim"],
             errors="coerce",
@@ -94,9 +77,7 @@ def prepare_detail_data(df):
     ]
 
     for column in text_columns:
-
         if column in data.columns:
-
             data[column] = (
                 data[column]
                 .fillna("Tidak Diketahui")
@@ -108,18 +89,13 @@ def prepare_detail_data(df):
                 data[column] == "",
                 column,
             ] = "Tidak Diketahui"
-
     return data
 
-
 # FORMAT DATA UNTUK DITAMPILKAN
-
 def format_detail_table(df):
-
     data = df.copy()
 
     if "Tanggal Kirim" in data.columns:
-
         data["Tanggal Kirim"] = data[
             "Tanggal Kirim"
         ].dt.strftime("%d/%m/%Y")
@@ -131,26 +107,19 @@ def format_detail_table(df):
     ]
 
     for column in numeric_columns:
-
         if column in data.columns:
-
             data[column] = data[column].apply(
                 format_number
             )
 
     if "nilai" in data.columns:
-
         data["nilai"] = data["nilai"].apply(
             format_currency
         )
-
     return data
 
-
 # FILTER TAMBAHAN TABEL DETAIL
-
 def apply_detail_search(data):
-
     filtered = data.copy()
 
     st.subheader("Pencarian Data")
@@ -175,11 +144,9 @@ def apply_detail_search(data):
     )
 
     if search_keyword:
-
         keyword = search_keyword.strip().lower()
 
         if search_column == "Semua Kolom":
-
             text_data = filtered.astype(str)
 
             mask = text_data.apply(
@@ -191,9 +158,7 @@ def apply_detail_search(data):
             ).any(axis=1)
 
         else:
-
             if search_column in filtered.columns:
-
                 mask = (
                     filtered[search_column]
                     .astype(str)
@@ -206,19 +171,15 @@ def apply_detail_search(data):
                 )
 
             else:
-
                 mask = pd.Series(
                     False,
                     index=filtered.index,
                 )
 
         filtered = filtered[mask]
-
     return filtered
 
-
 # MENGURUTKAN DATA DETAIL
-
 def sort_detail_data(
     df,
     parameter,
@@ -227,25 +188,20 @@ def sort_detail_data(
     data = df.copy()
 
     if data.empty:
-
         return data
 
     ascending = get_sort_ascending()
 
     if parameter == "Jumlah Transaksi":
-
         return data.reset_index(drop=True)
 
     elif parameter == "Jumlah Barang Retur":
-
         sort_column = "Kuantiti Alasan"
 
     else:
-
         sort_column = "nilai"
 
     if sort_column in data.columns:
-
         data = (
             data
             .sort_values(
@@ -255,14 +211,10 @@ def sort_detail_data(
             )
             .reset_index(drop=True)
         )
-
     return data
 
-
 # TABEL DETAIL DATA
-
 def create_detail_table(df):
-
     display_df = df.copy()
 
     available_columns = [
@@ -282,7 +234,6 @@ def create_detail_table(df):
     column_config = {}
 
     if "Nama Depo" in display_df.columns:
-
         column_config["Nama Depo"] = (
             st.column_config.TextColumn(
                 "Nama Depo"
@@ -290,7 +241,6 @@ def create_detail_table(df):
         )
 
     if "Tanggal Kirim" in display_df.columns:
-
         column_config["Tanggal Kirim"] = (
             st.column_config.TextColumn(
                 "Tanggal Kirim"
@@ -298,7 +248,6 @@ def create_detail_table(df):
         )
 
     if "Nama Driver" in display_df.columns:
-
         column_config["Nama Driver"] = (
             st.column_config.TextColumn(
                 "Nama Driver"
@@ -306,7 +255,6 @@ def create_detail_table(df):
         )
 
     if "Nama Sales" in display_df.columns:
-
         column_config["Nama Sales"] = (
             st.column_config.TextColumn(
                 "Nama Sales"
@@ -314,7 +262,6 @@ def create_detail_table(df):
         )
 
     if "Nama Customer" in display_df.columns:
-
         column_config["Nama Customer"] = (
             st.column_config.TextColumn(
                 "Nama Customer"
@@ -322,7 +269,6 @@ def create_detail_table(df):
         )
 
     if "Category" in display_df.columns:
-
         column_config["Category"] = (
             st.column_config.TextColumn(
                 "Category"
@@ -330,7 +276,6 @@ def create_detail_table(df):
         )
 
     if "Keterangan Alasan" in display_df.columns:
-
         column_config["Keterangan Alasan"] = (
             st.column_config.TextColumn(
                 "Keterangan Alasan"
@@ -338,7 +283,6 @@ def create_detail_table(df):
         )
 
     if "Kuantiti STK" in display_df.columns:
-
         column_config["Kuantiti STK"] = (
             st.column_config.TextColumn(
                 "Kuantiti STK"
@@ -346,7 +290,6 @@ def create_detail_table(df):
         )
 
     if "Kuantiti DO" in display_df.columns:
-
         column_config["Kuantiti DO"] = (
             st.column_config.TextColumn(
                 "Kuantiti DO"
@@ -354,7 +297,6 @@ def create_detail_table(df):
         )
 
     if "Kuantiti Alasan" in display_df.columns:
-
         column_config["Kuantiti Alasan"] = (
             st.column_config.TextColumn(
                 "Kuantiti Alasan"
@@ -362,7 +304,6 @@ def create_detail_table(df):
         )
 
     if "nilai" in display_df.columns:
-
         column_config["nilai"] = (
             st.column_config.TextColumn(
                 "Nilai Retur"
@@ -377,11 +318,8 @@ def create_detail_table(df):
         column_config=column_config,
     )
 
-
 # HALAMAN DETAIL DATA
-
 def show_detail_data(df):
-
     st.title("Detail Data")
 
     st.caption(
@@ -392,12 +330,10 @@ def show_detail_data(df):
     st.divider()
 
     if df.empty:
-
         st.warning(
             "Tidak ada data yang sesuai dengan filter "
             "yang dipilih."
         )
-
         return
 
     data = prepare_detail_data(
@@ -405,7 +341,6 @@ def show_detail_data(df):
     )
 
     # RINGKASAN DATA
-
     st.subheader("Ringkasan Data")
 
     total_data = len(data)
@@ -440,35 +375,30 @@ def show_detail_data(df):
     )
 
     with col1:
-
         st.metric(
             "Jumlah Data",
             format_number(total_data),
         )
 
     with col2:
-
         st.metric(
             "Total STK",
             format_number(total_stk),
         )
 
     with col3:
-
         st.metric(
             "Total DO",
             format_number(total_do),
         )
 
     with col4:
-
         st.metric(
             "Total Retur",
             format_number(total_retur),
         )
 
     with col5:
-
         st.metric(
             "Nilai Retur",
             format_currency(total_nilai),
@@ -477,7 +407,6 @@ def show_detail_data(df):
     st.divider()
 
     # PENCARIAN
-
     data_search = apply_detail_search(
         data
     )
@@ -485,7 +414,6 @@ def show_detail_data(df):
     st.divider()
 
     # URUTAN DATA
-
     st.subheader("Urutan Data")
 
     parameter = st.selectbox(
@@ -506,7 +434,6 @@ def show_detail_data(df):
     st.divider()
 
     # INFORMASI HASIL PENCARIAN
-
     st.subheader("Data Transaksi")
 
     jumlah_data = len(data_search)
@@ -517,32 +444,24 @@ def show_detail_data(df):
     )
 
     if data_search.empty:
-
         st.info(
             "Tidak ditemukan data berdasarkan "
             "kata kunci pencarian."
         )
-
         return
 
     # TABEL
-
     create_detail_table(
         data_search
     )
 
-
 # JALANKAN HALAMAN
-
 if "filtered_df" not in st.session_state:
-
     st.warning(
         "Data belum tersedia. Silakan upload "
         "file terlebih dahulu."
     )
-
     st.stop()
-
 
 df = st.session_state[
     "filtered_df"

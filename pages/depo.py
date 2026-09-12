@@ -2,39 +2,28 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-
 PLOTLY_CONFIG = {
     "displayModeBar": True,
     "displaylogo": False,
 }
 
-
 # MENENTUKAN ARAH URUTAN
-
 def get_sort_ascending():
-
     sort_order = st.session_state.get(
         "global_sort_order",
         "Tertinggi",
     )
-
     return sort_order == "Terendah"
 
-
 # FORMAT ANGKA
-
 def format_number(value):
     return f"{value:,.0f}".replace(",", ".")
-
 
 def format_currency(value):
     return f"Rp {value:,.0f}".replace(",", ".")
 
-
 def format_currency_compact(value):
-
     value = float(value)
-
     if abs(value) >= 1_000_000_000_000:
         return f"Rp {value / 1_000_000_000_000:.2f} triliun"
 
@@ -48,7 +37,6 @@ def format_currency_compact(value):
         return f"Rp {value / 1_000:.2f} ribu"
 
     return f"Rp {value:,.0f}".replace(",", ".")
-
 
 # PREPARASI DATA DEPO
 
@@ -87,57 +75,47 @@ def show_depo_kpis(df_depo):
     )
 
     with col1:
-
         st.metric(
             "Jumlah Transaksi",
             format_number(jumlah_transaksi),
         )
 
     with col2:
-
         st.metric(
             "Total STK",
             format_number(total_stk),
         )
 
     with col3:
-
         st.metric(
             "Total Retur",
             format_number(total_retur),
         )
 
     with col4:
-
         st.metric(
             "Persentase Retur",
             f"{persentase_retur:.2f}%",
         )
 
     with col5:
-
         st.metric(
             "Nominal Retur",
             format_currency_compact(nilai_retur),
         )
 
-
 # KOMPOSISI BARANG DO DAN RETUR
-
 def create_quantity_composition(df_depo):
-
     total_do = df_depo["Kuantiti DO"].sum()
     total_retur = df_depo["Kuantiti Alasan"].sum()
 
     total_stk = total_do + total_retur
 
     if total_stk <= 0:
-
         st.info(
             "Tidak terdapat data DO dan retur "
             "yang dapat divisualisasikan."
         )
-
         return
 
     persentase_do = (
@@ -201,14 +179,12 @@ def create_quantity_composition(df_depo):
     col1, col2, col3 = st.columns(3)
 
     with col1:
-
         st.metric(
             "Total STK",
             f"{format_number(total_stk)} barang",
         )
 
     with col2:
-
         st.metric(
             "Barang DO",
             f"{format_number(total_do)} barang",
@@ -216,24 +192,18 @@ def create_quantity_composition(df_depo):
         )
 
     with col3:
-
         st.metric(
             "Barang Retur",
             f"{format_number(total_retur)} barang",
             f"{persentase_retur:.2f}%",
         )
 
-
 # TREN DEPO
-
 def create_depo_trend(df_depo, parameter):
-
     if df_depo.empty:
-
         st.info(
             "Tidak terdapat data untuk ditampilkan."
         )
-
         return
 
     trend_df = (
@@ -259,7 +229,6 @@ def create_depo_trend(df_depo, parameter):
     )
 
     if parameter == "Jumlah Transaksi":
-
         y_column = "Jumlah_Transaksi"
         y_title = "Jumlah Transaksi"
         title = "Tren Jumlah Transaksi"
@@ -271,7 +240,6 @@ def create_depo_trend(df_depo, parameter):
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         y_column = "Jumlah_Retur"
         y_title = "Jumlah Barang Retur"
         title = "Tren Jumlah Barang Retur"
@@ -283,7 +251,6 @@ def create_depo_trend(df_depo, parameter):
         )
 
     else:
-
         y_column = "Nominal_Retur"
         y_title = "Nominal Retur"
         title = "Tren Nominal Retur"
@@ -324,9 +291,7 @@ def create_depo_trend(df_depo, parameter):
         config=PLOTLY_CONFIG,
     )
 
-
 # DISTRIBUSI ALASAN RETUR
-
 def create_depo_reason_chart(
     df_depo,
     top_n,
@@ -334,13 +299,10 @@ def create_depo_reason_chart(
 ):
 
     if df_depo.empty:
-
         st.info(
             "Tidak terdapat data untuk ditampilkan."
         )
-
         return
-
     reason_column = "Keterangan Alasan"
 
     reason_df = df_depo[
@@ -354,12 +316,10 @@ def create_depo_reason_chart(
     ].copy()
 
     if reason_df.empty:
-
         st.info(
             "Tidak terdapat keterangan alasan "
             "yang dapat ditampilkan."
         )
-
         return
 
     ascending = get_sort_ascending()
@@ -371,7 +331,6 @@ def create_depo_reason_chart(
     )
 
     if parameter == "Jumlah Transaksi":
-
         grouped = (
             reason_df
             .groupby(reason_column)
@@ -393,7 +352,6 @@ def create_depo_reason_chart(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         grouped = (
             reason_df
             .groupby(reason_column)["Kuantiti Alasan"]
@@ -415,7 +373,6 @@ def create_depo_reason_chart(
         )
 
     else:
-
         grouped = (
             reason_df
             .groupby(reason_column)["nilai"]
@@ -478,9 +435,7 @@ def create_depo_reason_chart(
         config=PLOTLY_CONFIG,
     )
 
-
 # DISTRIBUSI CUSTOMER
-
 def create_depo_customer_chart(
     df_depo,
     top_n,
@@ -488,11 +443,9 @@ def create_depo_customer_chart(
 ):
 
     if df_depo.empty:
-
         st.info(
             "Tidak terdapat data untuk ditampilkan."
         )
-
         return
 
     customer_column = "Nama Customer"
@@ -506,7 +459,6 @@ def create_depo_customer_chart(
     )
 
     if parameter == "Jumlah Transaksi":
-
         grouped = (
             df_depo
             .groupby(customer_column)
@@ -528,7 +480,6 @@ def create_depo_customer_chart(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         grouped = (
             df_depo
             .groupby(customer_column)["Kuantiti Alasan"]
@@ -550,7 +501,6 @@ def create_depo_customer_chart(
         )
 
     else:
-
         grouped = (
             df_depo
             .groupby(customer_column)["nilai"]
@@ -617,9 +567,7 @@ def create_depo_customer_chart(
         config=PLOTLY_CONFIG,
     )
 
-
 # DISTRIBUSI DRIVER
-
 def create_depo_driver_chart(
     df_depo,
     top_n,
@@ -627,11 +575,9 @@ def create_depo_driver_chart(
 ):
 
     if df_depo.empty:
-
         st.info(
             "Tidak terdapat data untuk ditampilkan."
         )
-
         return
 
     driver_column = "Nama Driver"
@@ -645,7 +591,6 @@ def create_depo_driver_chart(
     )
 
     if parameter == "Jumlah Transaksi":
-
         grouped = (
             df_depo
             .groupby(driver_column)
@@ -667,7 +612,6 @@ def create_depo_driver_chart(
         )
 
     elif parameter == "Jumlah Barang Retur":
-
         grouped = (
             df_depo
             .groupby(driver_column)["Kuantiti Alasan"]
@@ -689,7 +633,6 @@ def create_depo_driver_chart(
         )
 
     else:
-
         grouped = (
             df_depo
             .groupby(driver_column)["nilai"]
@@ -756,18 +699,14 @@ def create_depo_driver_chart(
         config=PLOTLY_CONFIG,
     )
 
-
 # HALAMAN DEPO
-
 def show_depo(df):
 
     if df.empty:
-
         st.warning(
             "Tidak ada data yang sesuai dengan filter "
             "yang dipilih."
         )
-
         return
 
     depo_values = (
@@ -784,12 +723,10 @@ def show_depo(df):
     )
 
     if not depo_values:
-
         st.warning(
             "Tidak terdapat data Nama Depo "
             "yang dapat dianalisis."
         )
-
         return
 
     st.title("Analisis Depo")
@@ -811,11 +748,9 @@ def show_depo(df):
     )
 
     if df_depo.empty:
-
         st.warning(
             "Tidak terdapat data untuk depo yang dipilih."
         )
-
         return
 
     st.subheader(
@@ -839,7 +774,6 @@ def show_depo(df):
     st.divider()
 
     # PARAMETER ANALISIS
-
     st.subheader(
         "Parameter Analisis"
     )
@@ -862,7 +796,6 @@ def show_depo(df):
     st.divider()
 
     # TREN RETUR
-
     st.subheader(
         "Tren Retur Berdasarkan Waktu"
     )
@@ -880,7 +813,6 @@ def show_depo(df):
     st.divider()
 
     # DISTRIBUSI RETUR
-
     st.subheader(
         "Distribusi Retur"
     )
@@ -896,7 +828,6 @@ def show_depo(df):
     )
 
     with col1:
-
         st.markdown(
             "#### Distribusi Alasan Retur"
         )
@@ -928,7 +859,6 @@ def show_depo(df):
         )
 
     with col2:
-
         st.markdown(
             "#### Distribusi Retur Berdasarkan Customer"
         )
@@ -962,7 +892,6 @@ def show_depo(df):
     st.divider()
 
     # DISTRIBUSI DRIVER
-
     st.subheader(
         "Distribusi Retur Berdasarkan Driver"
     )
@@ -998,18 +927,13 @@ def show_depo(df):
         parameter,
     )
 
-
 # MENJALANKAN HALAMAN
-
 if "filtered_df" not in st.session_state:
-
     st.warning(
         "Data belum tersedia. Silakan upload "
         "file terlebih dahulu."
     )
-
     st.stop()
-
 
 df = st.session_state[
     "filtered_df"
