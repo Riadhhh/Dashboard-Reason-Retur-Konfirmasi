@@ -92,6 +92,7 @@ with st.sidebar:
         "Upload laporan Retur",
         type=["xlsx", "xls"],
         help="Upload satu file Excel untuk satu periode bulan.",
+        accept_multiple_files=True,
     )
 
 
