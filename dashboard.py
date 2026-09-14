@@ -88,16 +88,16 @@ st.caption(
 with st.sidebar:
 
     st.header("📂 Data")
-    uploaded_file = st.file_uploader(
+    uploaded_files = st.file_uploader(
         "Upload laporan Retur",
         type=["xlsx", "xls"],
+        accept_multiple_files=True,
         help="Upload satu file Excel untuk satu periode bulan.",
     )
 
 
 # KONDISI BELUM ADA FILE
-if uploaded_file is None:
-
+if not uploaded_files:
     with st.sidebar:
 
         st.info(
@@ -112,51 +112,69 @@ if uploaded_file is None:
 
     st.stop()
 
-# MEMBACA FILE
-df, error_message = read_excel_database(
-    uploaded_file
-)
+# MEMBACA DAN MENGGABUNGKAN FILE
+data_frames = []
+file_errors = []
 
-# VALIDASI FILE
-if error_message:
+for uploaded_file in uploaded_files:
 
-    st.error(error_message)
-
-    with st.sidebar:
-
-        st.warning(
-            "File belum dapat digunakan. "
-            "Silakan upload file Excel yang sesuai."
-        )
-
-    st.stop()
-
-# VALIDASI KOLOM
-is_valid, missing_columns = validate_columns(df)
-
-if not is_valid:
-
-    st.error(
-        "File tidak dapat diproses karena terdapat "
-        "kolom yang tidak sesuai."
+    file_df, error_message = read_excel_database(
+        uploaded_file
     )
 
-    st.write("Kolom yang belum ditemukan:")
+    # CEK KESALAHAN PEMBACAAN FILE
+    if error_message:
 
-    for column in missing_columns:
-        st.write(f"- {column}")
-
-    with st.sidebar:
-
-        st.warning(
-            "Navigasi tersedia setelah file "
-            "berhasil divalidasi."
+        file_errors.append(
+            f"{uploaded_file.name}: {error_message}"
         )
+
+        continue
+
+    # VALIDASI KOLOM
+    is_valid, missing_columns = validate_columns(
+        file_df
+    )
+
+    if not is_valid:
+
+        file_errors.append(
+            f"{uploaded_file.name}: kolom tidak lengkap."
+        )
+
+        continue
+
+    # MEMBERSIHKAN DATA
+    file_df = clean_data(file_df)
+
+    # MENYIMPAN DATA FILE
+    data_frames.append(file_df)
+
+# CEK FILE YANG BERMASALAH
+if file_errors:
+
+    for error in file_errors:
+        st.error(error)
 
     st.stop()
 
-# MEMBERSIHKAN DATA
-df = clean_data(df)
+# CEK HASIL DATA
+if not data_frames:
+
+    st.error(
+        "Tidak ada file yang berhasil diproses."
+    )
+
+    st.stop()
+
+# MENGGABUNGKAN SEMUA DATA
+df = pd.concat(
+    data_frames,
+    ignore_index=True,
+)
+
+# VALIDASI DATA GABUNGAN
+validation = validate_data(df)
 
 # VALIDASI DATA
 validation = validate_data(df)
@@ -168,9 +186,10 @@ with st.sidebar:
 
     st.subheader("📄 Informasi Data")
 
-    st.write(
-        f"**Nama File:** {uploaded_file.name}"
-    )
+    st.write("**File yang diupload:**")
+
+    for uploaded_file in uploaded_files:
+        st.write(f"- {uploaded_file.name}")
 
     jumlah_transaksi = (
         f"{validation['jumlah_baris']:,}"
